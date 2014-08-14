@@ -43,7 +43,7 @@ class ElasticSearchPipeline2(object):
             local_id = id
         else:
             if uniq_key:
-                local_id = hashlib.sha1(item[uniq_key)]).hexdigest()
+                local_id = hashlib.sha1(item[uniq_key]).hexdigest()
                 log.msg("Generated unique key %s" % local_id)
             else:
                 op_type = 'create'
