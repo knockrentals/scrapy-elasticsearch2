@@ -37,22 +37,23 @@ class ElasticSearchPipeline2(object):
         self.es = ES([uri], basic_auth=basic_auth)
 
     def index_item(self, item, id=None):
-        op_type = 'none'
         uniq_key = self.__get_uniq_key()
         if id:
-            local_id = id
+            uniq_id = id
         else:
             if uniq_key:
-                local_id = hashlib.sha1(item[uniq_key)]).hexdigest()
+                uniq_id = hashlib.sha1(item[uniq_key]).hexdigest()
                 log.msg("Generated unique key %s" % local_id)
             else:
-                op_type = 'create'
-                local_id = item['id']
+                self.es.index(dict(item),
+                              self.settings['ELASTICSEARCH_INDEX'],
+                              self.settings['ELASTICSEARCH_TYPE'],
+                              id=item['id'],
+                              op_type='create')
         self.es.index(dict(item),
                       self.settings['ELASTICSEARCH_INDEX'],
                       self.settings['ELASTICSEARCH_TYPE'],
-                      id=local_id,
-                      op_type=op_type)
+                      id=uniq_id)
 
 
     def process_item(self, item, spider):
