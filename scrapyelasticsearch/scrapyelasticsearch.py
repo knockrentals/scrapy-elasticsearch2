@@ -49,7 +49,7 @@ class ElasticSearchPipeline(object):
     def index_item(self, item):
         if self.settings.get('ELASTICSEARCH_UNIQ_KEY'):
             uniq_key = self.settings.get('ELASTICSEARCH_UNIQ_KEY')
-            local_id = hashlib.sha1(item[uniq_key]).hexdigest()
+            local_id = hashlib.sha1(uniq_key).hexdigest()
             log.msg("Generated unique key %s" % local_id, level=self.settings.get('ELASTICSEARCH_LOG_LEVEL'))
             op_type = 'index'
         else:
