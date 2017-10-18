@@ -101,13 +101,14 @@ class ElasticSearchPipeline(object):
         return unique_key
 
     def get_id(self, item):
-        item_unique_key = item[self.settings['ELASTICSEARCH_UNIQ_KEY']]
-        unique_key = self.process_unique_key(item_unique_key)
+        unique_key = ''
+        for key in self.settings['ELASTICSEARCH_UNIQ_KEY'].split():
+            item_unique_key = item[key]
+            unique_key += self.process_unique_key(item_unique_key)
         item_id = hashlib.sha1(unique_key).hexdigest()
         return item_id
 
     def index_item(self, item):
-
         index_name = self.settings['ELASTICSEARCH_INDEX']
         index_suffix_format = self.settings.get('ELASTICSEARCH_INDEX_DATE_FORMAT', None)
         index_suffix_key = self.settings.get('ELASTICSEARCH_INDEX_DATE_KEY', None)
