@@ -112,17 +112,30 @@ class ElasticSearchPipeline(object):
     def index_item(self, item):
 
         index_name = self.settings['ELASTICSEARCH_INDEX']
-        index_suffix_format = self.settings.get('ELASTICSEARCH_INDEX_DATE_FORMAT', None)
+        # could be date, field, plain (default is date)
+        index_suffix_type = self.settings.get('ELASTICSEARCH_INDEX_SUFFIX_TYPE', 'date')
         index_suffix_key = self.settings.get('ELASTICSEARCH_INDEX_DATE_KEY', None)
+        if index_suffix_key is None:
+            index_suffix_key = self.settings.get('ELASTICSEARCH_INDEX_SUFFIX_KEY', None)
+        index_suffix_format = self.settings.get('ELASTICSEARCH_INDEX_DATE_FORMAT', None)
+        if index_suffix_format is None:
+            index_suffix_format = self.settings.get('ELASTICSEARCH_INDEX_SUFFIX_FORMAT', None)
         index_suffix_key_format = self.settings.get('ELASTICSEARCH_INDEX_DATE_KEY_FORMAT', None)
-
-        if index_suffix_format:
-            if index_suffix_key and index_suffix_key_format:
-                dt = datetime.strptime(item[index_suffix_key], index_suffix_key_format)
-            else:
-                dt = datetime.now()
-            index_name += "-" + datetime.strftime(dt,index_suffix_format)
-        elif index_suffix_key:
+        if index_suffix_key_format is None:
+            index_suffix_key_format = self.settings.get('ELASTICSEARCH_INDEX_SUFFIX_KEY_FORMAT', None)
+            
+        if index_suffix_type == 'date':
+            if index_suffix_format:
+                if index_suffix_key and index_suffix_key_format:
+                    dt = datetime.strptime(item[index_suffix_key], index_suffix_key_format)
+                else:
+                    dt = datetime.now()
+                index_name += "-" + datetime.strftime(dt,index_suffix_format)
+            elif index_suffix_key:
+                index_name += "-" + index_suffix_key
+        elif index_suffix_type == 'field':
+            index_name += "-" + item[index_suffix_key]
+        elif index_suffix_type == 'plain':
             index_name += "-" + index_suffix_key
 
         index_action = {
