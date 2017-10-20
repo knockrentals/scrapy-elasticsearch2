@@ -21,9 +21,20 @@ Usage (Configure settings.py:)
 
    ELASTICSEARCH_SERVERS = ['localhost']
    ELASTICSEARCH_INDEX = 'scrapy'
-   ELASTICSEARCH_INDEX_DATE_FORMAT = '%Y-%m'
    ELASTICSEARCH_TYPE = 'items'
-   ELASTICSEARCH_UNIQ_KEY = 'url'  # Custom uniqe key
+   # Custom uniqe key
+   ELASTICSEARCH_UNIQ_KEY = 'url'
+
+   # Eather set a custom index split type and field
+   ELASTICSEARCH_INDEX_SUFFIX_TYPE = 'field'
+   ELASTICSEARCH_INDEX_SUFFIX_KEY = 'language'
+
+   # Or append a plain text
+   ELASTICSEARCH_INDEX_SUFFIX_TYPE = 'plain'
+   ELASTICSEARCH_INDEX_SUFFIX_KEY = 'mysuffix'
+
+   # Or split by date
+   ELASTICSEARCH_INDEX_DATE_FORMAT = '%Y-%m'
 
    # can also accept a list of fields if need a composite key
    ELASTICSEARCH_UNIQ_KEY = ['url', 'id']
@@ -38,7 +49,9 @@ Available parameters (in settings.py:)
 ----------------------
 ::
 
-   ELASTICSEARCH_INDEX - elastic search index
+   ELASTICSEARCH_INDEX - elastic search index.
+   ELASTICSEARCH_INDEX_SUFFIX_TYPE - the type of index splitting.
+   ELASTICSEARCH_INDEX_SUFFIX_KEY - the key of the field to use the value for index splitting or the plain text you want to use depending on the type chosen.
    ELASTICSEARCH_INDEX_DATE_FORMAT - the format for date suffix for the index, see python datetime.strftime for format. Default is no date suffix.
    ELASTICSEARCH_TYPE - elastic search type
    ELASTICSEARCH_UNIQ_KEY - optional field, unique key in string (must be a field or a list declared in model, see items.py)
@@ -64,6 +77,7 @@ See requirements.txt
 
 Changelog
 =========
+* 0.9.1 Support different types to split the indices
 * 0.9: Accept custom CA cert to connect to es clusters
 * 0.8: Added support for NTLM authentification
 * 0.7.1: Added date format to the index name and a small bug fix
@@ -98,7 +112,7 @@ Contributors
 * Alessio Cimarelli (https://github.com/jenkin)
 * Doug Parker (https://github.com/dougiep16)
 * Jean-Sebastien Gervais (https://github.com/jsgervais)
-
+* David Meyer (https://github.com/dameyerdave)
 
 Licence
 =======
