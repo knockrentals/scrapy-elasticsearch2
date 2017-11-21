@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Elastic Search Pipeline for scrappy expanded with support for multiple items"""
+"""Elastic Search Pipeline for scrapy expanded with support for multiple items"""
 
 from datetime import datetime
 from elasticsearch import Elasticsearch, helpers
@@ -117,6 +117,22 @@ class ElasticSearchPipeline(object):
         if type(type_name) is list:
             type_name = '-'.join(type_name)
         return type_name
+    
+    def extract_item(self, item):
+        dcitems = dict(item)
+        
+        for crec in self.settings.get('ELASTICSEARCH_RECORDS', []):
+            records = []
+            name, fields = crec.split(':')
+            for field in fields.split(','):
+                if field in dcitems:
+                    for idx in range(len(dcitems[field])):
+                        record = get_initialized(records, idx, {})
+                        record[field] = dcitems[field][idx]
+                    del dcitems[field]
+            dcitems[name] = records
+        
+        return dcitems
 
     def index_item(self, item):
         index_name = self.settings['ELASTICSEARCH_INDEX']
@@ -136,7 +152,7 @@ class ElasticSearchPipeline(object):
         index_action = {
             '_index': index_name,
             '_type': self.get_type(item),
-            '_source': dict(item)
+            '_source': self.extract_item(item)
         }
 
         if self.settings['ELASTICSEARCH_UNIQ_KEY'] is not None:
@@ -165,3 +181,11 @@ class ElasticSearchPipeline(object):
     def close_spider(self, spider):
         if len(self.items_buffer):
             self.send_items()
+            
+def get_initialized(l, i, d = None):
+    try:
+        return l[i]
+    except IndexError:
+        for _ in range(i-len(l)+1):
+            l.append(d)
+    return l[i]

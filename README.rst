@@ -59,6 +59,10 @@ Available parameters (in settings.py:)
         'CLIENT_KEY': '/path/to/client_key.pem'
   }
 
+  ELASTICSEARCH_RECORDS - optional nested objects mapping.
+  Example: 
+  `ELASTICSEARCH_RECORDS = ['sub_rec:source,type']`
+  With the above setting we are creating a nested object(named `sub_rec`) inside the document with the fields document fields : `source` and `type`. See [nested objects elasticsearch documentation](https://www.elastic.co/guide/en/elasticsearch/guide/current/nested-objects.html) for more information.
 
 Here is an example app (dirbot https://github.com/jayzeng/dirbot) in case you are still confused.
 
@@ -68,6 +72,7 @@ See requirements.txt
 
 Changelog
 =========
+* 0.9.3 Add elastic search nested object support(ELASTICSEARCH_RECORDS)
 * 0.9.1: Accept composite ELASTICSEARCH_UNIQ_KEY and scrapy field ELASTICSEARCH_TYPE
 * 0.9: Accept custom CA cert to connect to es clusters
 * 0.8: Added support for NTLM authentification
