@@ -75,9 +75,13 @@ class ElasticSearchPipeline(object):
             import certifi
             es_settings['port'] = 443
             es_settings['use_ssl'] = True
-            es_settings['ca_certs'] = crawler_settings['ELASTICSEARCH_CA']['CA_CERT']
-            es_settings['client_key'] = crawler_settings['ELASTICSEARCH_CA']['CLIENT_KEY']
-            es_settings['client_cert'] = crawler_settings['ELASTICSEARCH_CA']['CLIENT_CERT']
+            ca = crawler_settings['ELASTICSEARCH_CA']
+            if 'CA_CERT' in ca:
+                es_settings['ca_certs'] = ca['CA_CERT']
+            if 'CLIENT_KEY' in ca:
+                es_settings['client_key'] = ca['CLIENT_KEY']
+            if 'CLIENT_CERT' in ca:
+                es_settings['client_cert'] = ca['CLIENT_CERT']
 
         es = Elasticsearch(**es_settings)
         return es
@@ -117,10 +121,10 @@ class ElasticSearchPipeline(object):
         if type(type_name) is list:
             type_name = '-'.join(type_name)
         return type_name
-    
+
     def extract_item(self, item):
         dcitems = dict(item)
-        
+
         for crec in self.settings.get('ELASTICSEARCH_RECORDS', []):
             records = []
             name, fields = crec.split(':')
@@ -131,7 +135,7 @@ class ElasticSearchPipeline(object):
                         record[field] = dcitems[field][idx]
                     del dcitems[field]
             dcitems[name] = records
-        
+
         return dcitems
 
     def index_item(self, item):
@@ -181,7 +185,7 @@ class ElasticSearchPipeline(object):
     def close_spider(self, spider):
         if len(self.items_buffer):
             self.send_items()
-            
+
 def get_initialized(l, i, d = None):
     try:
         return l[i]
