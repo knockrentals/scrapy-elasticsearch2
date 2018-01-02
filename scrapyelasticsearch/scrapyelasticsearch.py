@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Elastic Search Pipeline for scrappy expanded with support for multiple items"""
+"""Elastic Search Pipeline for scrapy expanded with support for multiple items"""
 
 from datetime import datetime
 from elasticsearch import Elasticsearch, helpers
@@ -23,6 +23,7 @@ from six import string_types
 import logging
 import hashlib
 import types
+import re
 
 
 class InvalidSettingsException(Exception):
@@ -74,9 +75,13 @@ class ElasticSearchPipeline(object):
             import certifi
             es_settings['port'] = 443
             es_settings['use_ssl'] = True
-            es_settings['ca_certs'] = crawler_settings['ELASTICSEARCH_CA']['CA_CERT']
-            es_settings['client_key'] = crawler_settings['ELASTICSEARCH_CA']['CLIENT_KEY']
-            es_settings['client_cert'] = crawler_settings['ELASTICSEARCH_CA']['CLIENT_CERT']
+            ca = crawler_settings['ELASTICSEARCH_CA']
+            if 'CA_CERT' in ca:
+                es_settings['ca_certs'] = ca['CA_CERT']
+            if 'CLIENT_KEY' in ca:
+                es_settings['client_key'] = ca['CLIENT_KEY']
+            if 'CLIENT_CERT' in ca:
+                es_settings['client_cert'] = ca['CLIENT_CERT']
 
         es = Elasticsearch(**es_settings)
         return es
@@ -101,16 +106,39 @@ class ElasticSearchPipeline(object):
         return unique_key
 
     def get_id(self, item):
-        item_unique_key = item[self.settings['ELASTICSEARCH_UNIQ_KEY']]
-        if isinstance(item_unique_key, list):
-            item_unique_key = '-'.join(item_unique_key)
-
-        unique_key = self.process_unique_key(item_unique_key)
+        unique_key = ''
+        for key in self.settings['ELASTICSEARCH_UNIQ_KEY'].split():
+            item_unique_key = item[key]
+            unique_key += self.process_unique_key(item_unique_key)
         item_id = hashlib.sha1(unique_key).hexdigest()
         return item_id
 
-    def index_item(self, item):
+    def get_type(self, item):
+        type_name = self.settings['ELASTICSEARCH_TYPE']
+        mregex = re.search(r"^%([^\s%]+?)%$", type_name.strip())
+        if(mregex):
+            type_name = item[mregex.group(1)]
+        if type(type_name) is list:
+            type_name = '-'.join(type_name)
+        return type_name
 
+    def extract_item(self, item):
+        dcitems = dict(item)
+
+        for crec in self.settings.get('ELASTICSEARCH_RECORDS', []):
+            records = []
+            name, fields = crec.split(':')
+            for field in fields.split(','):
+                if field in dcitems:
+                    for idx in range(len(dcitems[field])):
+                        record = get_initialized(records, idx, {})
+                        record[field] = dcitems[field][idx]
+                    del dcitems[field]
+            dcitems[name] = records
+
+        return dcitems
+
+    def index_item(self, item):
         index_name = self.settings['ELASTICSEARCH_INDEX']
         index_suffix_format = self.settings.get('ELASTICSEARCH_INDEX_DATE_FORMAT', None)
         index_suffix_key = self.settings.get('ELASTICSEARCH_INDEX_DATE_KEY', None)
@@ -127,8 +155,8 @@ class ElasticSearchPipeline(object):
 
         index_action = {
             '_index': index_name,
-            '_type': self.settings['ELASTICSEARCH_TYPE'],
-            '_source': dict(item)
+            '_type': self.get_type(item),
+            '_source': self.extract_item(item)
         }
 
         if self.settings['ELASTICSEARCH_UNIQ_KEY'] is not None:
@@ -158,3 +186,10 @@ class ElasticSearchPipeline(object):
         if len(self.items_buffer):
             self.send_items()
 
+def get_initialized(l, i, d = None):
+    try:
+        return l[i]
+    except IndexError:
+        for _ in range(i-len(l)+1):
+            l.append(d)
+    return l[i]

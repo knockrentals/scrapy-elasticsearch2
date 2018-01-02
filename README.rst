@@ -23,10 +23,14 @@ Usage (Configure settings.py:)
    ELASTICSEARCH_INDEX = 'scrapy'
    ELASTICSEARCH_INDEX_DATE_FORMAT = '%Y-%m'
    ELASTICSEARCH_TYPE = 'items'
+   
+   # can also accept a reference to a scrapy model field
+   ELASTICSEARCH_TYPE = '%field1%'
+   
    ELASTICSEARCH_UNIQ_KEY = 'url'  # Custom uniqe key
 
    # can also accept a list of fields if need a composite key
-   ELASTICSEARCH_UNIQ_KEY = ['url', 'id']
+   ELASTICSEARCH_UNIQ_KEY = 'url id'
 
 ELASTICSEARCH_SERVERS - list of hosts or string (single host). Host format: protocl://username:password@host:port.
 Examples:
@@ -40,8 +44,8 @@ Available parameters (in settings.py:)
 
    ELASTICSEARCH_INDEX - elastic search index
    ELASTICSEARCH_INDEX_DATE_FORMAT - the format for date suffix for the index, see python datetime.strftime for format. Default is no date suffix.
-   ELASTICSEARCH_TYPE - elastic search type
-   ELASTICSEARCH_UNIQ_KEY - optional field, unique key in string (must be a field or a list declared in model, see items.py)
+   ELASTICSEARCH_TYPE - elastic search type(can be a reference to a scrapy model field `%scrapyfield%`)
+   ELASTICSEARCH_UNIQ_KEY - optional field, unique key in string (must be a field or a list of fields separated by space declared in model, see items.py)
    ELASTICSEARCH_BUFFER_LENGTH - optional field, number of items to be processed during each bulk insertion to Elasticsearch. Default size is 500.
    ELASTICSEARCH_AUTH  - optional field, set to 'NTLM' to use NTLM authentification
    ELASTICSEARCH_USERNAME - optional field, set to 'DOMAIN\username', only used with NLTM authentification
@@ -55,6 +59,10 @@ Available parameters (in settings.py:)
         'CLIENT_KEY': '/path/to/client_key.pem'
   }
 
+  ELASTICSEARCH_RECORDS - optional nested objects mapping.
+  Example: 
+  `ELASTICSEARCH_RECORDS = ['sub_rec:source,type']`
+  With the above setting we are creating a nested object(named `sub_rec`) inside the document with the fields document fields : `source` and `type`. See [nested objects elasticsearch documentation](https://www.elastic.co/guide/en/elasticsearch/guide/current/nested-objects.html) for more information.
 
 Here is an example app (dirbot https://github.com/jayzeng/dirbot) in case you are still confused.
 
@@ -64,6 +72,8 @@ See requirements.txt
 
 Changelog
 =========
+* 0.9.3 Add elastic search nested object support(ELASTICSEARCH_RECORDS)
+* 0.9.1: Accept composite ELASTICSEARCH_UNIQ_KEY and scrapy field ELASTICSEARCH_TYPE
 * 0.9: Accept custom CA cert to connect to es clusters
 * 0.8: Added support for NTLM authentification
 * 0.7.1: Added date format to the index name and a small bug fix
@@ -98,6 +108,7 @@ Contributors
 * Alessio Cimarelli (https://github.com/jenkin)
 * Doug Parker (https://github.com/dougiep16)
 * Jean-Sebastien Gervais (https://github.com/jsgervais)
+* Alessio Pollero(https://github.com/aleroot)
 
 
 Licence
