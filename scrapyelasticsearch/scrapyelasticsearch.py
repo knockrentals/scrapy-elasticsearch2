@@ -106,7 +106,7 @@ class ElasticSearchPipeline(object):
         return unique_key
 
     def get_id(self, item):
-        unique_key = ''
+        unique_key = ''.encode('utf-8')
         for key in self.settings['ELASTICSEARCH_UNIQ_KEY'].split():
             item_unique_key = item[key]
             unique_key += self.process_unique_key(item_unique_key)
