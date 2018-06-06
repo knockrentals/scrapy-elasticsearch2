@@ -167,11 +167,14 @@ class ElasticSearchPipeline(object):
         self.items_buffer.append(index_action)
 
         if len(self.items_buffer) >= self.settings.get('ELASTICSEARCH_BUFFER_LENGTH', 500):
-            self.send_items()
-            self.items_buffer = []
+            self.flush_items()
 
     def send_items(self):
         helpers.bulk(self.es, self.items_buffer)
+    
+    def flush_items(self):
+        self.send_items()
+        del self.items_buffer[:]
 
     def process_item(self, item, spider):
         if isinstance(item, types.GeneratorType) or isinstance(item, list):
@@ -184,7 +187,7 @@ class ElasticSearchPipeline(object):
 
     def close_spider(self, spider):
         if len(self.items_buffer):
-            self.send_items()
+            self.flush_items()
 
 def get_initialized(l, i, d = None):
     try:
