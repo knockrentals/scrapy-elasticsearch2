@@ -47,6 +47,7 @@ Available parameters (in settings.py)
    ELASTICSEARCH_AUTH  - optional field, set to 'NTLM' to use NTLM authentification
    ELASTICSEARCH_USERNAME - optional field, set to 'DOMAIN\username', only used with NLTM authentification
    ELASTICSEARCH_PASSWORD - optional field, set to your 'password', only used with NLTM authentification
+   ELASTICSEARCH_MERGE - optional field, if set to True new documents will be merged with existing ones with the same ID using Elastic's update + upsert
 
    ELASTICSEARCH_CA - optional settings to if es servers require custom CA files.
    Example:
