@@ -48,6 +48,8 @@ Available parameters (in settings.py)
    ELASTICSEARCH_USERNAME - optional field, set to 'DOMAIN\username', only used with NLTM authentification
    ELASTICSEARCH_PASSWORD - optional field, set to your 'password', only used with NLTM authentification
 
+   ELASTICSEARCH_API_KEY_ID - optional field, set to api-key id, only used for api-key authentification.
+   ELASTICSEARCH_API_KEY_VALUE - optional field, set to api-key value, only used for api-key authentification.
    ELASTICSEARCH_CA - optional settings to if es servers require custom CA files.
    Example:
    ELASTICSEARCH_CA = {
