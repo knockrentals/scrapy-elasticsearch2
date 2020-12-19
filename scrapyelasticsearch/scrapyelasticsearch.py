@@ -23,6 +23,7 @@ from six import string_types
 import logging
 import hashlib
 import types
+import json
 
 
 class InvalidSettingsException(Exception):
@@ -88,6 +89,10 @@ class ElasticSearchPipeline(object):
 
         cls.validate_settings(ext.settings)
         ext.es = cls.init_es_client(crawler.settings)
+
+        if 'ELASTICSEARCH_INDEX_MAPPING' in ext.settings:
+            cls.create_index_with_mapping(ext)
+
         return ext
 
     def process_unique_key(self, unique_key):
@@ -151,10 +156,23 @@ class ElasticSearchPipeline(object):
                 self.process_item(each, spider)
         else:
             self.index_item(item)
-            logging.debug('Item sent to Elastic Search %s' % self.settings['ELASTICSEARCH_INDEX'])
+            logging.debug('Item sent to Elastic Search %s' %
+                          self.settings['ELASTICSEARCH_INDEX'])
             return item
 
     def close_spider(self, spider):
         if len(self.items_buffer):
             self.send_items()
 
+    def create_index_with_mapping(ext):
+        index_name = ext.settings['ELASTICSEARCH_INDEX']
+        mapping_file = ext.settings['ELASTICSEARCH_INDEX_MAPPING']
+
+        if ext.es.indices.exists(index_name):
+            logging.debug("index already exists, mapping will not be updated")
+        else:
+            logging.debug("will create index with mapping definition")
+            file = open(mapping_file, "r")
+            mapping_data = json.loads(file.read())
+            ext.es.indices.create(
+                index=index_name, ignore=400, body=mapping_data)
