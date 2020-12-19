@@ -56,6 +56,8 @@ Available parameters (in settings.py)
         'CLIENT_KEY': '/path/to/client_key.pem'
   }
 
+  ELASTICSEARCH_INDEX_MAPPING - optional field, file location of mapping definition (should be a json file)
+
 
 Here is an example app (dirbot https://github.com/jayzeng/dirbot) in case you are still confused.
 
@@ -65,6 +67,7 @@ See requirements.txt
 
 Changelog
 =========
+* 0.10: Added support for create index with mapping definition
 * 0.9: Accept custom CA cert to connect to es clusters
 * 0.8: Added support for NTLM authentification
 * 0.7.1: Added date format to the index name and a small bug fix
