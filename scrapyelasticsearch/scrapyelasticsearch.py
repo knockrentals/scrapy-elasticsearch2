@@ -156,8 +156,7 @@ class ElasticSearchPipeline(object):
                 self.process_item(each, spider)
         else:
             self.index_item(item)
-            logging.debug('Item sent to Elastic Search %s' %
-                          self.settings['ELASTICSEARCH_INDEX'])
+            logging.debug('Item sent to Elastic Search %s' % self.settings['ELASTICSEARCH_INDEX'])
             return item
 
     def close_spider(self, spider):
